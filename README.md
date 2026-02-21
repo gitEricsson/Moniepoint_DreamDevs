@@ -20,7 +20,7 @@ A production-quality REST API that imports massive volumes of merchant activity 
 
 ### 2. Breaking Down the Solution
 
-- Separated the monolithic architecture into strict Domain-Driven modules
+- Separated the monolithic architecture into strict Domain-Driven modules (schemas-models-api-controllers-services-repositories separation per module)
 
 ### 3. Data Processing Strategy
 
