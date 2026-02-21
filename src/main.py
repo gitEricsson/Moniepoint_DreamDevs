@@ -1,13 +1,3 @@
-"""
-main.py
-──────────────────────────────────────────────────────────────────────────────
-Application entry point.
-
-Run with:
-    python -m src.main
-    # or directly:
-    uvicorn src.main:app --host 0.0.0.0 --port 8080
-"""
 from __future__ import annotations
 
 import uvicorn

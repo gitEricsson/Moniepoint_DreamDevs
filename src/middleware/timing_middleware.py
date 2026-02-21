@@ -1,8 +1,3 @@
-"""
-middleware/timing_middleware.py
-──────────────────────────────────────────────────────────────────────────────
-Injects the X-Process-Time header into every response.
-"""
 import time
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request

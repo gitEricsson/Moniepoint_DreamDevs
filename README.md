@@ -32,6 +32,7 @@ A production-quality REST API that imports massive volumes of merchant activity 
 ### 4. API & Systems Design
 
 - Built a modular FastAPI routing system exposing the 5 distinct REST endpoints
+- Used Class based components for code reuse, functionality and maintainability
 - Designed global exception handling to wrap errors in standardized JSON envelopes
 - Implemented middlewares to handle CORS, rate limiting, request logging, and security headers
 - Enforced strict OpenAPI (Swagger) documentation with precise schema examples

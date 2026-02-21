@@ -1,13 +1,3 @@
-"""
-api/app.py
-──────────────────────────────────────────────────────────────────────────────
-FastAPI application factory.
-
-Design pattern: Factory + Module-level Singleton.
-  `create_app()` builds the FastAPI instance once and caches it in `_app`.
-  Subsequent calls return the same object — useful for test overrides while
-  preventing accidental double-initialisation in production.
-"""
 from __future__ import annotations
 
 from fastapi import FastAPI
@@ -22,20 +12,9 @@ from src.middleware.timing_middleware import TimingMiddleware
 from src.middleware.logging_middleware import LoggingMiddleware
 from src.tasks.import_task import lifespan
 
-# ── Singleton guard ───────────────────────────────────────────────────────────
 _app: FastAPI | None = None
 
-
 def create_app() -> FastAPI:
-    """
-    Build (or return the cached) FastAPI application.
-
-    Registers:
-      • Lifespan handler      — CSV import on startup
-      • Request logging       — method / path / status / latency
-      • Global error handlers — consistent JSON error envelope
-      • API router            — all /analytics endpoints
-    """
     global _app
     if _app is not None:
         return _app
@@ -59,18 +38,14 @@ def create_app() -> FastAPI:
         ]
     )
 
-    # Cross-Origin
     setup_cors(application)
 
-    # Middleware (outermost first)
     application.add_middleware(SecurityHeadersMiddleware)
     application.add_middleware(TimingMiddleware)
     application.add_middleware(LoggingMiddleware)
 
-    # Exception handlers
     register_error_handlers(application)
 
-    # Routes
     application.include_router(api_router)
 
     _app = application

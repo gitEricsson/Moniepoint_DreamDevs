@@ -1,17 +1,3 @@
-"""
-tests/test_import.py
-──────────────────────────────────────────────────────────────────────────────
-Unit tests for the CSV import pipeline.
-
-Tests cover:
-  • Valid row → parsed correctly
-  • Missing merchant_id → skipped
-  • Missing event_timestamp → skipped
-  • Invalid amount ('INVALID') → coerced to 0.00
-  • Invalid status → skipped
-  • Duplicate event_id (in-memory set) → skipped
-  • Invalid product → skipped
-"""
 from __future__ import annotations
 
 import uuid
@@ -22,11 +8,7 @@ import pytest
 from src.modules.importer.schemas.activity import ActivityCreate
 from src.modules.importer.services.import_service import CSVImportService
 
-
-# ── _parse_row unit tests ──────────────────────────────────────────────────────
-
 class TestParseRow:
-    """Tests for CSVImportService._parse_row — the per-row validation gate."""
 
     def _parse(self, raw: dict, seen: set | None = None) -> tuple:
         return CSVImportService._parse_row(raw, seen or set())
@@ -66,7 +48,6 @@ class TestParseRow:
         assert ok is False
 
     def test_invalid_amount_coerced_to_zero(self):
-        """Non-numeric amount should be coerced to 0.00, not skip the row."""
         row = self._valid_row(amount="INVALID")
         record, ok = self._parse(row)
         assert ok is True
@@ -100,7 +81,6 @@ class TestParseRow:
         assert ok is False
 
     def test_pending_status_accepted(self):
-        """PENDING is a valid status per the spec — row must not be skipped."""
         row = self._valid_row(status="PENDING")
         _, ok = self._parse(row)
         assert ok is True
@@ -112,17 +92,12 @@ class TestParseRow:
         assert record["status"] == "FAILED"
 
     def test_amount_zero_accepted(self):
-        """KYC events legitimately have amount=0.0."""
         row = self._valid_row(product="KYC", event_type="TIER_UPGRADE", amount="0.0")
         record, ok = self._parse(row)
         assert ok is True
         assert record["amount"] == Decimal("0.00")
 
-
-# ── ActivityCreate schema unit tests ─────────────────────────────────────────
-
 class TestActivityCreateSchema:
-    """Direct schema validation tests."""
 
     def _base_data(self) -> dict:
         return {

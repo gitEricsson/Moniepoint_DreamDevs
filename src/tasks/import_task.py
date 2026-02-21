@@ -1,12 +1,3 @@
-"""
-tasks/import_task.py
-──────────────────────────────────────────────────────────────────────────────
-FastAPI lifespan startup task that triggers the CSV → DB import.
-
-Runs the import in a ThreadPoolExecutor so it does not block the asyncio event
-loop during the synchronous CSV I/O portions.  The actual DB writes are still
-fully async.
-"""
 from __future__ import annotations
 
 import asyncio
@@ -21,25 +12,17 @@ from src.modules.importer.services.import_service import CSVImportService
 
 logger = get_logger(__name__)
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """
-    FastAPI lifespan context manager.
-    All code before `yield` runs at startup; all code after runs at shutdown.
-    """
     logger.info("Application starting up — running CSV import check …")
 
-    # Run import asynchronously without blocking other startup tasks
     asyncio.create_task(_run_import())
 
-    yield  # ── Application is live from here ──────────────────────────────────
+    yield  
 
     logger.info("Application shutting down.")
 
-
 async def _run_import() -> None:
-    """Execute the CSV import pipeline using a fresh database session."""
     try:
         async with AsyncSessionFactory() as session:
             service = CSVImportService(db=session)

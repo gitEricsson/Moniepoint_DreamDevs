@@ -1,15 +1,8 @@
-"""
-core/logging.py
-──────────────────────────────────────────────────────────────────────────────
-Structured logging configuration for the application.
-Configured once at startup via `setup_logging()`.
-"""
 from __future__ import annotations
 
 import logging
 import logging.config
 from typing import Any
-
 
 LOGGING_CONFIG: dict[str, Any] = {
     "version": 1,
@@ -57,12 +50,8 @@ LOGGING_CONFIG: dict[str, Any] = {
     },
 }
 
-
 def setup_logging() -> None:
-    """Apply the logging configuration. Call once at application startup."""
     logging.config.dictConfig(LOGGING_CONFIG)
 
-
 def get_logger(name: str) -> logging.Logger:
-    """Convenience factory so modules don't import `logging` directly."""
     return logging.getLogger(name)

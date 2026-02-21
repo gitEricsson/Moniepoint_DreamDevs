@@ -1,8 +1,3 @@
-"""
-modules/analytics/api/router.py
-──────────────────────────────────────────────────────────────────────────────
-FastAPI router definitions mapped to the thin controller layer.
-"""
 from typing import Annotated
 from fastapi import APIRouter, Depends
 

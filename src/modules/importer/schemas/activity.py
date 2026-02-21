@@ -1,9 +1,3 @@
-"""
-schemas/activity.py
-──────────────────────────────────────────────────────────────────────────────
-Pydantic v2 schema for the internal CSV → DB ingestion pipeline.
-Not exposed via the API; used only by the import service.
-"""
 from __future__ import annotations
 
 import uuid
@@ -12,16 +6,13 @@ from decimal import Decimal
 
 from pydantic import BaseModel, field_validator, model_validator
 
-
 VALID_PRODUCTS = frozenset(
     {"POS", "AIRTIME", "BILLS", "CARD_PAYMENT", "SAVINGS", "MONIEBOOK", "KYC"}
 )
 VALID_STATUSES = frozenset({"SUCCESS", "FAILED", "PENDING"})
 VALID_CHANNELS = frozenset({"POS", "APP", "USSD", "WEB", "OFFLINE"})
 
-
 class ActivityCreate(BaseModel):
-    """Internal DTO — one validated CSV row ready for DB insertion."""
 
     event_id: uuid.UUID
     merchant_id: str
@@ -34,16 +25,9 @@ class ActivityCreate(BaseModel):
     region: str | None = None
     merchant_tier: str | None = None
 
-    # ── Field validators ──────────────────────────────────────────────────────
-
     @field_validator("amount", mode="before")
     @classmethod
     def coerce_amount(cls, v: object) -> Decimal:
-        """
-        Graceful handling of malformed amounts.
-        Non-numeric values (e.g. 'INVALID') are coerced to 0.00 instead of
-        raising a hard error — keeps the import pipeline moving.
-        """
         try:
             return Decimal(str(v))
         except Exception:
@@ -76,11 +60,6 @@ class ActivityCreate(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def check_required_fields(cls, values: dict) -> dict:
-        """
-        Skip rows missing merchant_id or event_timestamp entirely.
-        This is checked before field-level validation so the error message
-        is clear about *why* the row was rejected.
-        """
         merchant_id = str(values.get("merchant_id", "")).strip()
         timestamp = str(values.get("event_timestamp", "")).strip()
 
@@ -91,7 +70,6 @@ class ActivityCreate(BaseModel):
         return values
 
     def to_db_dict(self) -> dict:
-        """Serialise to a plain dict for SQLAlchemy bulk insert."""
         return {
             "event_id": self.event_id,
             "merchant_id": self.merchant_id,

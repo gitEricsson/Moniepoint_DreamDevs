@@ -1,8 +1,3 @@
-"""
-middleware/error_handler.py
-──────────────────────────────────────────────────────────────────────────────
-Global exception handlers with domain precision logging.
-"""
 import traceback
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError

@@ -1,8 +1,3 @@
-"""
-middleware/logging_middleware.py
-──────────────────────────────────────────────────────────────────────────────
-Logs incoming requests with URL and status resolution.
-"""
 import time
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request

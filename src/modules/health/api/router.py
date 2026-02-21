@@ -1,8 +1,3 @@
-"""
-modules/health/api/router.py
-──────────────────────────────────────────────────────────────────────────────
-Health check endpoints indicating API status.
-"""
 from fastapi import APIRouter
 
 router = APIRouter(tags=["Health"])

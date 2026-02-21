@@ -1,13 +1,3 @@
-"""
-tests/test_analytics.py
-──────────────────────────────────────────────────────────────────────────────
-HTTP integration tests for all 5 /analytics endpoints.
-
-Each test:
-  1. Seeds data via the shared db_session fixture
-  2. Sends a real HTTP request through the FastAPI ASGI app (no networking)
-  3. Asserts HTTP status, Content-Type, and response shape/values
-"""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -19,25 +9,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.conftest import make_activity
 
-
 @pytest.fixture
 async def seeded_client(db_session: AsyncSession, client: AsyncClient):
-    """Seed analytics data then yield the test client."""
     rows = [
-        # ── Top Merchant: MRC-A has highest volume ─────────────────────────
         make_activity(merchant_id="MRC-A01", product="POS", amount="900000.00",
                       status="SUCCESS", event_timestamp=datetime(2024, 1, 10, tzinfo=timezone.utc)),
         make_activity(merchant_id="MRC-A02", product="POS", amount="400000.00",
                       status="SUCCESS", event_timestamp=datetime(2024, 1, 15, tzinfo=timezone.utc)),
-        # ── Monthly: Jan = 2 merchants, Feb = 1 ────────────────────────────
         make_activity(merchant_id="MRC-A01", product="AIRTIME", amount="5000.00",
                       status="SUCCESS", event_timestamp=datetime(2024, 2, 3, tzinfo=timezone.utc)),
-        # ── Failure rate: BILLS = 1FAIL/2total = 50% ──────────────────────
         make_activity(merchant_id="MRC-A03", product="BILLS", amount="200.00",
                       status="FAILED", event_timestamp=datetime(2024, 1, 20, tzinfo=timezone.utc)),
         make_activity(merchant_id="MRC-A03", product="BILLS", amount="200.00",
                       status="SUCCESS", event_timestamp=datetime(2024, 1, 21, tzinfo=timezone.utc)),
-        # ── KYC funnel ────────────────────────────────────────────────────
         make_activity(merchant_id="MRC-A04", product="KYC",
                       event_type="DOCUMENT_SUBMITTED", amount="0.00", status="SUCCESS",
                       event_timestamp=datetime(2024, 3, 1, tzinfo=timezone.utc)),
@@ -51,7 +35,6 @@ async def seeded_client(db_session: AsyncSession, client: AsyncClient):
     db_session.add_all(rows)
     await db_session.flush()
     return client
-
 
 class TestTopMerchant:
     async def test_returns_200(self, seeded_client: AsyncClient):
@@ -69,7 +52,6 @@ class TestTopMerchant:
         data = res.json()
         assert data["merchant_id"] == "MRC-A01"
         assert float(data["total_volume"]) == pytest.approx(905000.0)
-
 
 class TestMonthlyActiveMerchants:
     async def test_returns_200(self, seeded_client: AsyncClient):
@@ -93,9 +75,7 @@ class TestMonthlyActiveMerchants:
     async def test_january_count(self, seeded_client: AsyncClient):
         res = await seeded_client.get("/analytics/monthly-active-merchants")
         data = res.json()
-        # Jan: MRC-A01 (POS success), MRC-A02 (POS success), MRC-A03 (has success)
         assert data.get("2024-01") == 3
-
 
 class TestProductAdoption:
     async def test_returns_200(self, seeded_client: AsyncClient):
@@ -113,7 +93,6 @@ class TestProductAdoption:
         assert "POS" in data
         assert "BILLS" in data
         assert "KYC" in data
-
 
 class TestKYCFunnel:
     async def test_returns_200(self, seeded_client: AsyncClient):
@@ -133,7 +112,6 @@ class TestKYCFunnel:
         assert data["documents_submitted"] == 1
         assert data["verifications_completed"] == 1
         assert data["tier_upgrades"] == 1
-
 
 class TestFailureRates:
     async def test_returns_200(self, seeded_client: AsyncClient):
@@ -158,14 +136,12 @@ class TestFailureRates:
         assert rates == sorted(rates, reverse=True)
 
     async def test_bills_failure_rate(self, seeded_client: AsyncClient):
-        """BILLS has 1 FAILED / 2 total = 50.0%."""
         res = await seeded_client.get("/analytics/failure-rates")
         bills = next(
             (item for item in res.json() if item["product"] == "BILLS"), None
         )
         assert bills is not None
         assert bills["failure_rate"] == pytest.approx(50.0, abs=0.1)
-
 
 class TestHealth:
     async def test_health_endpoint(self, client: AsyncClient):

@@ -1,8 +1,3 @@
-"""
-utils/validators.py
-──────────────────────────────────────────────────────────────────────────────
-Static validation logic separated from Pydantic schemas.
-"""
 from src.core.constants import VALID_PRODUCTS, VALID_STATUSES, VALID_CHANNELS
 
 def validate_status_value(status: str) -> str:

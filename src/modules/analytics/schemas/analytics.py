@@ -1,21 +1,10 @@
-"""
-schemas/analytics.py
-──────────────────────────────────────────────────────────────────────────────
-Pydantic v2 response schemas for all 5 analytics endpoints.
-
-Decimal precision rules (from spec):
-  • Monetary values  → 2 decimal places
-  • Percentages      → 1 decimal place
-"""
 from __future__ import annotations
 
 from decimal import Decimal, ROUND_HALF_UP
 
 from pydantic import BaseModel, field_serializer
 
-
 class TopMerchantResponse(BaseModel):
-    """GET /analytics/top-merchant"""
 
     merchant_id: str
     total_volume: Decimal
@@ -33,9 +22,7 @@ class TopMerchantResponse(BaseModel):
         }
     }
 
-
 class FailureRateItem(BaseModel):
-    """One entry in GET /analytics/failure-rates"""
 
     product: str
     failure_rate: Decimal
@@ -53,9 +40,7 @@ class FailureRateItem(BaseModel):
         }
     }
 
-
 class KYCFunnelResponse(BaseModel):
-    """GET /analytics/kyc-funnel"""
 
     documents_submitted: int
     verifications_completed: int
@@ -71,15 +56,12 @@ class KYCFunnelResponse(BaseModel):
         }
     }
 
-
 class ImportSummary(BaseModel):
-    """Internal – returned by the import service for logging/health checks."""
 
     files_processed: int
     rows_inserted: int
     rows_skipped: int
     already_loaded: bool = False
-
 
 MONTHLY_ACTIVE_MERCHANTS_RESPONSES = {
     200: {
@@ -90,7 +72,6 @@ MONTHLY_ACTIVE_MERCHANTS_RESPONSES = {
         }
     }
 }
-
 
 PRODUCT_ADOPTION_RESPONSES = {
     200: {

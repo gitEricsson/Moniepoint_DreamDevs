@@ -1,9 +1,3 @@
-"""
-modules/analytics/controllers/analytics_controller.py
-──────────────────────────────────────────────────────────────────────────────
-Class-based view controller containing the HTTP logic.
-Decoupled from FastAPI router declarations.
-"""
 from src.modules.analytics.schemas.analytics import (
     FailureRateItem,
     KYCFunnelResponse,
@@ -12,7 +6,6 @@ from src.modules.analytics.schemas.analytics import (
 from src.modules.analytics.services.analytics_service import AnalyticsService
 
 class AnalyticsController:
-    """Encapsulates request handling logic for analytics endpoints."""
     def __init__(self, service: AnalyticsService) -> None:
         self.service = service
 
