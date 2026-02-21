@@ -8,40 +8,31 @@ A production-quality REST API that imports massive volumes of merchant activity 
 
 ## 🧠 Problem Solving Approach
 
-### 1. Understanding the Problem
+### 1. Problem Analysis
+I began by analyzing the merchant transaction schema and data constraints to identify potential bottlenecks. My focus was on delivering five core metrics:
+- Top-performing merchants by successful sales volume.
+- Monthly active merchant trends.
+- Product adoption rates.
+- KYC conversion funnel metrics.
+- Transaction failure analysis per product.
 
-- Analyzed the massive merchant transaction format and data structure constraints
-- Identified the key metrics needed:
-  - Highest successful sales volume merchant
-  - Unique active merchants count per calendar month
-  - Most adopted product ID by volume
-  - Conversion pipeline for KYC documents
-  - Transaction failure breakdown per product
+### 2. Architectural Strategy
+I moved away from a flat MVC structure in favor of strict **Domain-Driven Design (DDD)**. By isolating schemas, models, controllers, and repositories into domain-specific modules, I ensured that the codebase remains navigable as the feature set grows.
 
-### 2. Breaking Down the Solution
+### 3. Data Engineering & Performance
+- **Memory Efficiency:** I implemented Python generators for `O(Batch_Size)` CSV processing. This allows the system to handle multi-gigabyte files with a constant, low memory footprint.
+- **Collision Detection:** Used an in-memory UUID hash set for `O(1)` deduplication during the import phase.
+- **Database Optimization:** Instead of processing logic in Python loops, I utilized single-pass PostgreSQL aggregations (`SUM(CASE WHEN...)`).
+- **Indexing:** I deployed targeted B-Tree and Composite indexes to optimize the 5 core analytical queries for `O(log N)` lookup speeds.
 
-- Separated the monolithic architecture into strict Domain-Driven modules (schemas-models-api-controllers-services-repositories separation per module)
+### 4. API Design
+- **FastAPI & Pydantic:** Leveraged FastAPI for its high performance and Pydantic v2 for strict type safety and auto-generated OpenAPI documentation.
+- **Middleware:** I authored custom middlewares for structured logging, security headers (HSTS, XSS protection), and request timing (`X-Process-Time`).
+- **Error Handling:** Implemented a global exception handler to catch domain-specific errors and return standardized JSON responses, preventing stack trace leakage.
 
-### 3. Data Processing Strategy
-
-- Used `O(Batch_Size)` Python generators to lazily evaluate CSVs and prevent memory exhaustion
-- Implemented an `O(1)` in-memory UUID hash set for immediate duplication collision detection
-- Created single-pass Postgres aggregations (`SUM(CASE WHEN...)`) to combine data directly in the database rather than Python loops
-- Deployed B-Tree and Composite indexing specifically targeting the 5 core metric queries
-
-### 4. API & Systems Design
-
-- Built a modular FastAPI routing system exposing the 5 distinct REST endpoints
-- Used Class based components for code reuse, functionality and maintainability
-- Designed global exception handling to wrap errors in standardized JSON envelopes
-- Implemented middlewares to handle CORS, rate limiting, request logging, and security headers
-- Enforced strict OpenAPI (Swagger) documentation with precise schema examples
-
-### 5. Testing and Validation
-
-- Engineered 42 combined unit and integration tests across routers, schemas, and repositories
-- Seeded diverse, isolated in-memory SQLite test environments dynamically
-- Validated error coercions (e.g. malformed integers) to guarantee the import pipeline survives corrupt data rows
+### 5. Testing & Quality Assurance
+- **Test Suite:** Engineered 42 unit and integration tests covering the entire pipeline from ingestion to endpoint response.
+- **Dynamic Environments:** Configured `pytest` with an ephemeral SQLite in-memory database to allow for rapid, isolated CI/CD execution without external dependencies.
 
 ---
 
@@ -49,15 +40,11 @@ A production-quality REST API that imports massive volumes of merchant activity 
 
 This section breaks down the *why* behind the tools, languages, and patterns chosen for this system. Considering extensive experience across both Python and TypeScript ecosystems, these choices represent the optimal path for a data-heavy analytics API.
 
-### 1. Language & Framework: Python + FastAPI
-- **Why Python over TypeScript (Node.js/Express/NestJS)?** 
-  While TS/Node provides fantastic asynchronous I/O, this project heavily involves data aggregation and parsing (CSV ingestion, mathematical aggregations, decimal precision). Python natively excels at data-centric operations. Furthermore, Python's SQLAlchemy 2.0 provides arguably the most mature SQL expression language available across any ecosystem, surpassing TypeORM/Prisma in complex query generation.
-- **Why FastAPI?** 
-  FastAPI offers the ergonomics of NestJS (Dependency Injection, decorators) and the speed of Express, but with built-in Pydantic validation and automatic OpenAPI (Swagger) generation. It strictly enforces type hints, bridging the gap between Python's dynamic nature and standard static typing.
+### 1. Language Choice: Python + FastAPI
+While I have extensive experience in the TypeScript/Node.js ecosystem, I chose **Python** for this project due to its superior handling of data-heavy operations and decimal precision. **SQLAlchemy 2.0** provides a more robust SQL expression language than current TS ORMs, which was critical for the complex analytical queries required here.
 
-### 2. Architecture: Domain-Driven Modular Design vs Monolith
-- Instead of a flat MVC structure (`controllers/`, `models/`, `services/`), the codebase is separated into **Business Domains** (`src/modules/analytics`, `src/modules/importer`, `src/modules/health`).
-- **Why?** Modular/DDD structures scale remarkably better for teams. If Moniepoint adds a "fraud" or "settlements" domain tomorrow, they get their own folder with their own schemas, models, and tests without cluttering the global namespace. It naturally prevents chaotic cross-imports (spaghetti code) and sets the foundation for microservice extraction if ever needed.
+### 2. Modular DDD vs. Monolith
+I organized the code into **Business Domains** (`analytics`, `importer`, `health`). This separation ensures that if a new domain (like "Settlements") is added, it won't clutter existing logic. It also simplifies the path toward microservices if the system needs to scale horizontally.
 
 ### 3. Layered Separation of Concerns (Within Modules)
 Each domain follows strict layer boundaries:
