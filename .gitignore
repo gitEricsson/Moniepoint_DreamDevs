@@ -1,0 +1,21 @@
+# ── Python ──────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+
+# ── Environment ──────────
+.env
+*.env
+
+# ── IDE ─────────────────
+.vscode/
+.idea/
+
+# ── Alembic ─────────────
+alembic/versions/*.pyc
